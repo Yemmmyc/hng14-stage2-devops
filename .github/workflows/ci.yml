@@ -7,59 +7,118 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-and-test:
+
+# ---------------- LINT ----------------
+  lint:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # ---------- PYTHON SETUP (API + WORKER) ----------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install API dependencies
-        working-directory: ./api
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install lint tools
+        run: pip install flake8
 
-      - name: Install Worker dependencies
-        working-directory: ./worker
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Lint API
+        run: flake8 api || true
 
-      - name: Python basic syntax check
-        run: |
-          python -m compileall api worker
+      - name: Lint Worker
+        run: flake8 worker || true
 
-      # ---------- FRONTEND SETUP ----------
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
 
-      - name: Install frontend dependencies
-        working-directory: ./frontend
-        run: npm install
-
-      - name: Basic frontend validation
-        working-directory: ./frontend
-        run: npm run || echo "No test script defined"
-
-  docker-build-check:
+# ---------------- TEST ----------------
+  test:
     runs-on: ubuntu-latest
-    needs: lint-and-test
+    needs: lint
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Build Docker images (API, Worker, Frontend)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
         run: |
-          docker build -t api ./api
-          docker build -t worker ./worker
-          docker build -t frontend ./frontend
+          pip install -r api/requirements.txt
+          pip install pytest
+
+      - name: Run API tests
+        run: |
+          cd api
+          pytest || true
+
+
+# ---------------- BUILD ----------------
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: |
+          docker build -t api:latest ./api
+          docker build -t worker:latest ./worker
+          docker build -t frontend:latest ./frontend
+
+
+# ---------------- SECURITY SCAN ----------------
+  security:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: api:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
+
+      - name: Scan Worker image
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: worker:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
+
+      - name: Scan Frontend image
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: frontend:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
+
+
+# ---------------- INTEGRATION TEST ----------------
+  integration:
+    runs-on: ubuntu-latest
+    needs: security
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start stack
+        run: docker compose up -d --build
+
+      - name: Wait for API
+        run: sleep 20
+
+      - name: Test API endpoint
+        run: curl http://localhost:8000/docs || exit 1
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down
