@@ -1,73 +1,131 @@
-🚀 Job Processing Microservices (DevOps Stage 2)
-📌 Overview
+# 🚀 Job Processing Microservices (DevOps Stage 2)
+
+## 📌 Overview
 
 This project is a containerized microservices-based job processing system built as part of Stage 2 DevOps.
 
 It consists of:
 
-Frontend (Node.js) – Submit and track jobs
-API (FastAPI) – Handles job creation and status
-Worker (Python) – Processes jobs asynchronously
-Redis – Queue and state management
-🏗️ Architecture
+- **Frontend (Node.js)** – Submit and track jobs  
+- **API (FastAPI)** – Handles job creation and status  
+- **Worker (Python)** – Processes jobs asynchronously  
+- **Redis** – Queue and state management  
+
+---
+
+## 🏗️ Architecture
+
+```
 Frontend → API → Redis → Worker
+```
 
 All services communicate over an internal Docker network.
 
-⚙️ Prerequisites
+---
+
+## ⚙️ Prerequisites
 
 Ensure the following are installed:
 
-Docker
-Docker Compose
+- Docker  
+- Docker Compose  
 
 Check:
 
+```bash
 docker --version
+
 docker compose version
-🚀 Getting Started
+```
+
+---
+
+## 🚀 Getting Started
 
 Clone the repository:
 
+```bash
 git clone https://github.com/Yemmmyc/hng14-stage2-devops.git
+
 cd hng14-stage2-devops
-🔧 Environment Setup
+```
+
+---
+
+## 🔧 Environment Setup
 
 Copy environment variables:
 
+```bash
 cp .env.example .env
 
 Edit .env if needed.
+```
 
-▶️ Run the Application
+---
+
+## ▶️ Run the Application
+
+```bash
 docker compose up --build
-🌐 Access Services
+```
+
+---
+
+## 🌐 Access Services
+
+```bash
 Frontend → http://localhost:3000
+
 API Docs → http://localhost:8000/docs
-🧪 Testing the Flow
+```
+
+---
+
+## 🧪 Testing the Flow
+
+```bash
 Open the frontend
 Submit a job
 Observe:
 Job is created
 Worker processes it
 Status updates to completed
-📦 Services
+```
+
+---
+
+## 📦 Services
+
+```bash
 Service	Port	Description
 frontend	3000	UI for job submission
 api	8000	FastAPI backend
 worker	—	Background processor
 redis	6379	Queue (internal only)
-🐳 Docker Features
+```
+
+---
+
+## 🐳 Docker Features
+
+```bash
 Multi-container orchestration via Docker Compose
 Internal networking (no exposed Redis)
 Health checks for all services
 Non-root container users
 CPU & memory limits applied
-🔄 CI/CD Pipeline
+```
+
+---
+
+## 🔄 CI/CD Pipeline
 
 Implemented using GitHub Actions.
 
 Stages:
+
+```bash
 Lint
 flake8 (Python)
 eslint (JavaScript)
@@ -85,38 +143,66 @@ Job submitted and validated
 Deploy
 Rolling update simulation
 Health checks enforced
-🛠️ Fixes Applied
+```
+
+---
+
+## 🛠️ Fixes Applied
 
 All bugs and improvements are documented in:
 
+```bash
 FIXES.md
 
 Includes:
-
 Misconfigurations
 Container issues
 Networking fixes
 Production improvements
-🔐 Environment Variables
+```
+
+---
+
+## 🔐 Environment Variables
 
 Example:
 
+```bash
 REDIS_HOST=redis
 REDIS_PORT=6379
 API_URL=http://api:8000
-⚠️ Notes
+```
+
+---
+
+## ⚠️ Notes
+
+```bash
 .env is excluded from version control
 No secrets are hardcoded
 Designed for local + CI environments
-✅ Expected Output
+```
+
+---
+
+## ✅ Expected Output
 
 When running successfully:
 
+```bash
 All containers start without errors
 Redis becomes healthy
 API becomes healthy
 Frontend loads
 Jobs move from "pending" → "completed"
-👨‍💻 Author
+```
 
+---
+
+## 👨‍💻 Author
+
+```bash
 Yemisi (DevOps Engineer)
+```
+
+---
