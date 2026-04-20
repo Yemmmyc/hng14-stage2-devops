@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-# ---------------- LINT ----------------
+  # ---------------- LINT ----------------
   lint:
     runs-on: ubuntu-latest
 
@@ -30,7 +30,7 @@ jobs:
         run: flake8 worker || true
 
 
-# ---------------- TEST ----------------
+  # ---------------- TEST ----------------
   test:
     runs-on: ubuntu-latest
     needs: lint
@@ -54,7 +54,7 @@ jobs:
           pytest || true
 
 
-# ---------------- BUILD ----------------
+  # ---------------- BUILD ----------------
   build:
     runs-on: ubuntu-latest
     needs: test
@@ -69,47 +69,46 @@ jobs:
           docker build -t frontend:latest ./frontend
 
 
-# ---------------- SECURITY SCAN ----------------
-security:
-  runs-on: ubuntu-latest
-  needs: build
+  # ---------------- SECURITY ----------------
+  security:
+    runs-on: ubuntu-latest
+    needs: build
 
-  steps:
-    - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-    # 🔥 ADD THIS (IMPORTANT)
-    - name: Build images again for scanning
-      run: |
-        docker build -t api:latest ./api
-        docker build -t worker:latest ./worker
-        docker build -t frontend:latest ./frontend
+      - name: Build images again for scanning
+        run: |
+          docker build -t api:latest ./api
+          docker build -t worker:latest ./worker
+          docker build -t frontend:latest ./frontend
 
-    - name: Scan API image
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: api:latest
-        format: table
-        severity: CRITICAL
-        exit-code: 1
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: api:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
 
-    - name: Scan Worker image
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: worker:latest
-        format: table
-        severity: CRITICAL
-        exit-code: 1
+      - name: Scan Worker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: worker:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
 
-    - name: Scan Frontend image
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: frontend:latest
-        format: table
-        severity: CRITICAL
-        exit-code: 1
+      - name: Scan Frontend image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: frontend:latest
+          format: table
+          severity: CRITICAL
+          exit-code: 1
 
 
-# ---------------- INTEGRATION TEST ----------------
+  # ---------------- INTEGRATION ----------------
   integration:
     runs-on: ubuntu-latest
     needs: security
@@ -117,11 +116,11 @@ security:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start stack
+      - name: Start full stack
         run: docker compose up -d --build
 
       - name: Wait for API
-        run: sleep 20
+        run: sleep 25
 
       - name: Test API endpoint
         run: curl http://localhost:8000/docs || exit 1
