@@ -6,7 +6,8 @@ This document lists all issues found in the application and the fixes applied to
 
 ## Issue 1: Hardcoded Redis host in API
 
-File: `api/main.py`  
+File: `api/main.py`
+
 Approx Line: 6–10
 
 ## Problem:
@@ -30,7 +31,9 @@ r = redis.Redis(
 ---
 
 ## Issue 2: Hardcoded API URL in frontend
+
 File: frontend/app.js
+
 Approx Line: 1–3
 
 ## Problem:
@@ -52,7 +55,9 @@ const API_URL = process.env.API_URL || "http://api:8000";
 ---
 
 ## Issue 3: Worker Redis connection not environment-aware
+
 File: worker/worker.py
+
 Approx Line: 4–8
 
 ## Problem:
@@ -98,8 +103,11 @@ Ensured all services communicate using Docker service names (api, redis, worker)
 ---
 
 ## Summary of Improvements
+```
 Enabled full Docker-based service communication
 Removed all hardcoded localhost dependencies
 Improved production readiness and portability
 Standardized environment variable configuration
+```
 
+---
