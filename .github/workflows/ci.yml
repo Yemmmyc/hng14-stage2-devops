@@ -78,7 +78,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Scan API image
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: api:latest
           format: table
@@ -86,7 +86,7 @@ jobs:
           exit-code: 1
 
       - name: Scan Worker image
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: worker:latest
           format: table
@@ -94,7 +94,7 @@ jobs:
           exit-code: 1
 
       - name: Scan Frontend image
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: frontend:latest
           format: table
