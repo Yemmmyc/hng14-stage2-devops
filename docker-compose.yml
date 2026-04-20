@@ -1,23 +1,39 @@
-version: "3.9"
-
 services:
   redis:
     image: redis:7-alpine
+    container_name: redis
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
 
   api:
-    build:
-      context: ./api
+    build: ./api
     ports:
       - "8000:8000"
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
     deploy:
       resources:
         limits:
@@ -25,15 +41,16 @@ services:
           memory: 256M
 
   worker:
-    build:
-      context: ./worker
+    build: ./worker
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - appnet
+    restart: always
     deploy:
       resources:
         limits:
@@ -41,21 +58,28 @@ services:
           memory: 256M
 
   frontend:
-    build:
-      context: ./frontend
+    build: ./frontend
     ports:
       - "3000:3000"
     environment:
-      - API_URL=http://api:8000
+      API_URL: http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
     deploy:
       resources:
         limits:
-          cpus: "0.3"
+          cpus: "0.25"
           memory: 128M
 
 networks:
   appnet:
+    driver: bridge

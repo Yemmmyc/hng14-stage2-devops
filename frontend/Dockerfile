@@ -3,11 +3,10 @@ FROM node:18-slim
 WORKDIR /app
 
 COPY package*.json ./
+
 RUN npm install
 
 COPY . .
-
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m appuser
 USER appuser
