@@ -8,6 +8,7 @@ node_modules/
 
 # Env files (CRITICAL)
 .env
+api/.env
 
 # Docker
 *.log
