@@ -161,11 +161,26 @@ jobs:
       - name: Start full stack
         run: docker compose up -d --build
 
-      - name: Wait for API
-        run: sleep 20
+      - name: Wait for API (robust)
+        run: |
+          echo "Waiting for API..."
+          for i in $(seq 1 24); do
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "API is up!"
+              break
+            fi
+            echo "Attempt $i/24 — waiting 5s..."
+            sleep 5
+            if [ $i -eq 24 ]; then
+              echo "API never became ready. Logs:"
+              docker compose logs
+              exit 1
+            fi
+          done
 
       - name: Test job flow
-        run: curl -X POST http://localhost:3000/job
+        run: |
+          curl -X POST http://localhost:8000/job
 
       - name: Shutdown stack
         run: docker compose down
