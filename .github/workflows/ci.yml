@@ -83,14 +83,24 @@ jobs:
       - name: Build images
         run: |
           docker build -t localhost:5000/api:latest ./api
+          docker build -t localhost:5000/api:${{ github.sha }} ./api
+
           docker build -t localhost:5000/worker:latest ./worker
+          docker build -t localhost:5000/worker:${{ github.sha }} ./worker
+
           docker build -t localhost:5000/frontend:latest ./frontend
+          docker build -t localhost:5000/frontend:${{ github.sha }} ./frontend
 
       - name: Push to local registry
         run: |
           docker push localhost:5000/api:latest
+          docker push localhost:5000/api:${{ github.sha }}
+
           docker push localhost:5000/worker:latest
+          docker push localhost:5000/worker:${{ github.sha }}
+
           docker push localhost:5000/frontend:latest
+          docker push localhost:5000/frontend:${{ github.sha }}
 
 # ---------------- SECURITY SCAN ----------------
   security:
