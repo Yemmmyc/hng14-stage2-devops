@@ -1,7 +1,7 @@
 name: DevOps Pipeline
 
 on:
-  push:
+  push: false
     branches: [ main ]
   pull_request:
 
@@ -84,7 +84,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./api
-          push: fals
+          push: false
           tags: |
             localhost:5000/api:latest
             localhost:5000/api:${{ github.sha }}
