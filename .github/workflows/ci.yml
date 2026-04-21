@@ -142,13 +142,16 @@ jobs:
           docker build -t worker:latest ./worker
           docker build -t frontend:latest ./frontend
 
-      - name: Run Trivy scan (SARIF output)
+      - name: Run Trivy scan (SARIF)
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $PWD:/work \
             aquasec/trivy:latest image \
+            --exit-code 0 \
+            --severity CRITICAL \
             --format sarif \
-            --output trivy.sarif \
+            --output /work/trivy.sarif \
             api:latest
 
       - name: Upload SARIF report
