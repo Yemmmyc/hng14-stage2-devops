@@ -174,3 +174,16 @@ jobs:
           docker compose up -d --build
           sleep 10
           docker compose ps
+
+   # ---------------- TEARDOWN ----------------
+  teardown:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [integration]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stop containers
+        run: docker compose down -v       
