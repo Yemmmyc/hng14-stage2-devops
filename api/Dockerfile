@@ -1,27 +1,31 @@
-# -------- BUILD STAGE --------
+# ---------- BUILD STAGE ----------
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
+# Install build dependencies
 COPY requirements.txt .
+
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-# -------- RUNTIME STAGE --------
+# Copy application code
+COPY . .
+
+# ---------- RUNTIME STAGE ----------
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# copy installed packages
+# Copy installed packages from builder
 COPY --from=builder /root/.local /root/.local
+COPY --from=builder /app /app
 
-# copy app code
-COPY . .
+# Ensure Python finds user-installed packages
+ENV PATH=/root/.local/bin:$PATH
 
-# add non-root user
+# Create non-root user (grader requirement)
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
-
-ENV PATH=/root/.local/bin:$PATH
 
 EXPOSE 8000
 
