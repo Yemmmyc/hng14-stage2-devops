@@ -1,8 +1,8 @@
 name: DevOps Pipeline
 
 on:
-  push: false
-    branches:[ main ]
+  push:
+    branches: [ main ]
   pull_request:
 
 jobs:
