@@ -1,5 +1,9 @@
 name: DevOps Pipeline
 
+permissions:
+  contents: read
+  security-events: write
+
 on:
   push:
     branches: [ main ]
