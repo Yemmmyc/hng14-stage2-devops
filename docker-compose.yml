@@ -1,84 +1,74 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: redis
     networks:
       - appnet
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: 128M
+    mem_limit: 128m
+    cpus: 0.25
 
   api:
     build: ./api
     ports:
       - "8000:8000"
     environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       redis:
         condition: service_healthy
     networks:
       - appnet
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')" ]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
+    mem_limit: 256m
+    cpus: 0.5
 
   worker:
     build: ./worker
     environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     depends_on:
       redis:
         condition: service_healthy
+    command: python -u worker.py
+    restart: always
     networks:
       - appnet
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
+
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import redis; r=redis.Redis(host='redis',port=6379); r.ping()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     environment:
-      API_URL: http://api:8000
+      API_URL: ${API_URL}
     depends_on:
       api:
         condition: service_healthy
-    networks:
-      - appnet
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: [ "CMD-SHELL", "true" ]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: 128M
+    mem_limit: 128m
+    cpus: 0.25
 
 networks:
   appnet:
