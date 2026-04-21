@@ -25,7 +25,7 @@ services:
     networks:
       - appnet
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8000/docs || exit 1" ]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8000/docs || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
