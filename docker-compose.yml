@@ -17,20 +17,18 @@ services:
     ports:
       - "8000:8000"
     environment:
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       - redis
     networks:
       - appnet
-
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 20s
-
+      retries: 10
+      start_period: 30s
     restart: always
     mem_limit: 256m
     cpus: 0.5
@@ -38,18 +36,13 @@ services:
   worker:
     build: ./worker
     environment:
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       - redis
     command: python -u worker.py
     networks:
       - appnet
-    healthcheck:
-      test: [ "CMD", "python", "-c", "import redis; r=redis.Redis(host='redis',port=6379); r.ping()" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
     restart: always
     mem_limit: 128m
     cpus: 0.25
@@ -59,18 +52,16 @@ services:
     ports:
       - "3000:3000"
     environment:
-      API_URL: ${API_URL}
+      API_URL: http://api:8000
     depends_on:
       - api
     networks:
       - appnet
-
     healthcheck:
       test: [ "CMD-SHELL", "true" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
     restart: always
     mem_limit: 128m
     cpus: 0.25
