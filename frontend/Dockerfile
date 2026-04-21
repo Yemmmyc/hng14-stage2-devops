@@ -1,25 +1,19 @@
-# ---------- BUILD ----------
+# -------- BUILD STAGE --------
 FROM node:18-slim AS builder
 
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
 
 COPY . .
+RUN npm run build
 
-# ---------- RUN ----------
-FROM node:18-slim
+# -------- RUNTIME STAGE --------
+FROM nginx:alpine
 
-WORKDIR /app
-
-COPY --from=builder /app /app
-
-RUN useradd -m appuser
-
-USER appuser
+COPY --from=builder /app/build /usr/share/nginx/html
 
 EXPOSE 3000
 
-HEALTHCHECK CMD curl -f http://localhost:3000 || exit 1
-
-CMD ["node", "app.js"]
+HEALTHCHECK CMD wget -qO- http://localhost:3000 || exit 1

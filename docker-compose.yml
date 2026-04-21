@@ -20,11 +20,12 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - appnet
     healthcheck:
-      test: [ "CMD", "python", "-c", "import sys; sys.exit(0)" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,9 +39,9 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     command: python -u worker.py
-    restart: always
     networks:
       - appnet
     healthcheck:
@@ -48,6 +49,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    restart: always
+    mem_limit: 128m
+    cpus: 0.25
 
   frontend:
     build: ./frontend
@@ -56,7 +60,10 @@ services:
     environment:
       API_URL: ${API_URL}
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - appnet
     healthcheck:
       test: [ "CMD-SHELL", "true" ]
       interval: 10s

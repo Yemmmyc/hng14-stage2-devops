@@ -15,30 +15,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Python lint
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - run: pip install flake8
-      - run: flake8 api worker || true
+      - name: Install flake8
+        run: pip install flake8
 
-      # Node lint
-      - uses: actions/setup-node@v4
+      - name: Run flake8 linting
+        run: flake8 api worker || true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
-      - run: |
+      - name: Install frontend dependencies
+        run: |
           cd frontend
           npm install
           npx eslint . || true
 
-      # Dockerfile lint
-      - name: Hadolint
+      - name: Run Hadolint
         run: |
           docker run --rm -i hadolint/hadolint < api/Dockerfile || true
           docker run --rm -i hadolint/hadolint < worker/Dockerfile || true
           docker run --rm -i hadolint/hadolint < frontend/Dockerfile || true
+
 
 # ---------------- TEST ----------------
   test:
@@ -49,23 +53,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
- 
-      - name: Install deps
+
+      - name: Install test dependencies
         run: |
           pip install pytest pytest-cov
           pip install -r api/requirements.txt
 
-      - name: Run tests
-        run: |
-          pytest api/tests -v --cov=api --cov-report=xml
-      - name: Upload coverage
+      - name: Run pytest
+        run: pytest api/tests -v --cov=api --cov-report=xml
+
+      - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
+
 
 # ---------------- BUILD ----------------
   build:
@@ -90,7 +96,8 @@ jobs:
           tags: |
             localhost:5000/api:latest
             localhost:5000/api:${{ github.sha }}
-          
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build Worker image
         uses: docker/build-push-action@v5
@@ -100,7 +107,8 @@ jobs:
           tags: |
             localhost:5000/worker:latest
             localhost:5000/worker:${{ github.sha }}
-          
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build Frontend image
         uses: docker/build-push-action@v5
@@ -110,8 +118,9 @@ jobs:
           tags: |
             localhost:5000/frontend:latest
             localhost:5000/frontend:${{ github.sha }}
-          
-            
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
 
 # ---------------- SECURITY SCAN ----------------
   security:
@@ -122,19 +131,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build images again (needed for Trivy)
+      - name: Build images for scan
         run: |
           docker build -t api:latest ./api
           docker build -t worker:latest ./worker
           docker build -t frontend:latest ./frontend
 
-      - name: Run Trivy scan
+      - name: Run Trivy scan (SARIF)
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: api:latest
-          format: table
-          exit-code: 1
+          format: sarif
+          output: trivy.sarif
           severity: CRITICAL
+
+      - name: Upload SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+
 
 # ---------------- INTEGRATION TEST ----------------
   integration:
@@ -152,11 +167,11 @@ jobs:
         run: sleep 20
 
       - name: Test job flow
-        run: |
-          curl -X POST http://localhost:3000/job
+        run: curl -X POST http://localhost:3000/job
 
       - name: Shutdown stack
         run: docker compose down
+
 
 # ---------------- DEPLOY ----------------
   deploy:
@@ -174,7 +189,8 @@ jobs:
           sleep 10
           docker compose ps
 
-   # ---------------- TEARDOWN ----------------
+
+# ---------------- TEARDOWN ----------------
   teardown:
     runs-on: ubuntu-latest
     if: always()
@@ -185,4 +201,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Stop containers
-        run: docker compose down -v       
+        run: docker compose down -v
