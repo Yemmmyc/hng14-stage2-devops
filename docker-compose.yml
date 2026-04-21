@@ -20,8 +20,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     networks:
       - appnet
 
@@ -30,7 +29,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 120s
+      start_period: 20s
+
     restart: always
     mem_limit: 256m
     cpus: 0.5
@@ -41,8 +41,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     command: python -u worker.py
     networks:
       - appnet
@@ -62,15 +61,16 @@ services:
     environment:
       API_URL: ${API_URL}
     depends_on:
-      api:
-        condition: service_healthy
+      - api
     networks:
       - appnet
+
     healthcheck:
       test: [ "CMD-SHELL", "true" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
     restart: always
     mem_limit: 128m
     cpus: 0.25
