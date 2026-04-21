@@ -20,8 +20,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     networks:
       - appnet
     healthcheck:
@@ -39,8 +38,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     command: python -u worker.py
     restart: always
     networks:
@@ -58,8 +56,7 @@ services:
     environment:
       API_URL: ${API_URL}
     depends_on:
-      api:
-        condition: service_healthy
+      - api
     healthcheck:
       test: [ "CMD-SHELL", "true" ]
       interval: 10s
