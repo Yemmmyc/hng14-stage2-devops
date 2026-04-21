@@ -10,6 +10,13 @@ r = redis.Redis(
     host=os.getenv("REDIS_HOST", "redis"),
     port=int(os.getenv("REDIS_PORT", 6379))
 )
+@app.post("/job")
+def create_job_compat():
+    job_id = str(uuid.uuid4())
+    r.lpush("job", job_id)
+    r.hset(f"job:{job_id}", "status", "queued")
+    return {"job_id": job_id, "status": "queued"}
+
 
 @app.post("/jobs")
 def create_job():
