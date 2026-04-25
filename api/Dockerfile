@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM python:3.11-alpine AS builder
+FROM python:3.12-alpine AS builder
 
 WORKDIR /app
 COPY requirements.txt .
@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # Stage 2: Runtime
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 WORKDIR /app
 COPY --from=builder /install /usr/local
