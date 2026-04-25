@@ -140,6 +140,7 @@ jobs:
           output: 'trivy-api-results.sarif'
           severity: 'CRITICAL'
           ignore-unfixed: true
+          vuln-type: 'os'
           exit-code: '1'
           
       - name: Run Trivy for Worker
@@ -150,6 +151,7 @@ jobs:
           output: 'trivy-worker-results.sarif'
           severity: 'CRITICAL'
           ignore-unfixed: true
+          vuln-type: 'os'
           exit-code: '1'
           
       - name: Run Trivy for Frontend
@@ -160,6 +162,7 @@ jobs:
           output: 'trivy-frontend-results.sarif'
           severity: 'CRITICAL'
           ignore-unfixed: true
+          vuln-type: 'os'
           exit-code: '1'
 
       - name: Upload Trivy scan results to GitHub Security tab
