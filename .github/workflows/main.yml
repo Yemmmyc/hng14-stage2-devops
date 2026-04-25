@@ -29,7 +29,7 @@ jobs:
           node-version: '20'
           
       - name: Install eslint
-        run: npm install -g eslint
+        run: npm install -g eslint@8
         
       # Since there's no eslintrc by default, we just init a basic one or pass
       - name: Create basic eslint config
